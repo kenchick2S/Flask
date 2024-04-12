@@ -1,0 +1,40 @@
+<html> 
+	<head>
+		<title>測試表格</title>
+		<link rel="stylesheet" href="{{ url_for('static',    filename='css/table.css') }}">
+	</head>
+	<body>
+		<table>
+		<thead>
+    			<tr>
+			{% for column in dataset[0].keys() %}
+      				<th scope="col">{{column}}</th>
+			{% endfor %}				
+    			</tr>
+  		</thead>
+  		<tbody>
+
+			{% for data in dataset %}
+    				<tr>
+					{% for column in data.values() %}
+      						<td>{{column}}</td>
+					{% endfor %} 
+    				</tr>
+			{% endfor %}
+		</tbody>
+		<tfoot>
+    			<tr>
+      				<th scope="row" colspan={{(dataset[0].keys() | length) -1}}>Total</th>
+      				<td>{{ dataset|length }}</td>
+    			</tr>
+  		</tfoot>
+		</table>
+		<!--
+		{% for i in range(2) %}
+		<div>	
+			<img src="{{ url_for('static', filename='images/lineplot%d.png'|format(i)) }}"> 
+		</div>
+		{% endfor %}
+		-->
+	</body>
+</html>
