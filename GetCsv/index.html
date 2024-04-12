@@ -1,0 +1,85 @@
+<html> 
+	<head>
+		<title>測試網站</title>
+		<script>
+		function myFunction() {
+			document.getElementById("demo").innerHTML = "";
+			var e_name = document.getElementById("e_name").value;
+			var c_name = document.getElementById("c_name").value;
+			var e_id = document.getElementById("e_id").value;
+			var c_id = document.getElementById("c_id").value;
+			var date_start = document.getElementById("date_start").value;
+			var date_end = document.getElementById("date_end").value;
+			var p_name = document.getElementById("p_name").value;
+			var t_amount = document.getElementById("t_amount").value;
+
+			if (e_name || c_name || date_start || date_end || e_id || c_id || p_name || t_amount) {
+				window.open("/search?e_name="+e_name+"&e_id="+e_id+"&c_name="+c_name+"&c_id="+c_id+"&date_start="+date_start+"&date_end="+date_end+"&p_name="+p_name+"&t_amount="+t_amount);
+				console.log("redirect...");
+			}
+			else {	
+				
+				document.getElementById("demo").innerHTML = "<font color='red'><p>不能空白</p></font>";
+				return false;
+			}
+		}
+		function onlyOne(checkbox) {
+    			var checkboxes = document.getElementsByName("box")
+    			checkboxes.forEach((item) => {
+        			if (item !== checkbox) item.checked = false
+    				})
+			}
+		
+		function boxValue(){
+			var checkboxes = document.getElementsByName("box")
+    			checkboxes.forEach((item) => {
+        			if (item.checked == true) return item.value;
+			else return None;
+    				})
+			}
+		</script>
+	</head>
+	<body> 
+		<a href="/all">取得所有資料</a> 
+		<form name="form1" onsubmit="myFunction()">
+			<input type="checkbox" name="box" id="e_id_box" value="Employee_ID" onclick=onlyOne(this)>
+			Employee ID:
+			<input type="text" id="e_id"><br>
+			<input type="checkbox" name="box" id="e_name_box" value="Employee_Name" onclick=onlyOne(this)>
+			Employee Name:
+			<input type="text" id="e_name"><br>
+			<input type="checkbox" name="box" id="c_id_box" value="Customer_ID" onclick=onlyOne(this)>
+			Customer ID:
+			<input type="text" id="c_id"><br>
+			<input type="checkbox" name="box" id="c_name_box" value="Customer_Name" onclick=onlyOne(this)>
+			Customer Name:
+			<input type="text" id="c_name"><br>
+			<input type="checkbox" name="box" id="date_box" value="Transaction_Date" onclick=onlyOne(this)>
+			Start Date:
+			<input type="text" id="date_start"><br>
+			End Date:
+			<input type="text" id="date_end"><br>
+			<input type="checkbox" name="box" id="p_name_box" value="Product_Name" onclick=onlyOne(this)>
+			Product Name:
+      			<select  id="p_name">
+				<option value=""></option>
+        				<option value="富邦吉祥貨幣市場基金">富邦吉祥貨幣市場基金</option>
+				<option value="富邦精準基金">富邦精準基金</option>
+				<option value="富邦長紅基金">富邦長紅基金</option>
+				<option value="富邦高成長基金">富邦高成長基金</option>
+				<option value="富邦科技基金">富邦科技基金</option>
+				<option value="富邦台灣心基金">富邦台灣心基金</option>
+				<option value="富邦全球不動產基金">富邦全球不動產基金</option>
+				<option value="富邦大中華成長基金">富邦大中華成長基金</option>
+				<option value="富邦精銳中小基金">富邦精銳中小基金</option>
+				<option value="富邦全球投資等級債券">富邦全球投資等級債券</option>
+      			</select><br>
+			<input type="checkbox" name="box" id="t_amount_box" value="Transaction_Amount" onclick=onlyOne(this)>
+			Transaction_amount:
+			<input type="text" id="t_amount"><br>
+			
+			<input type="submit" onclick="return myFunction()">
+		</form>
+		<p id="demo"></p>
+	</body> 
+</html>
