@@ -1,0 +1,68 @@
+.testbox1{
+    position: relative;
+    width: 20x;
+
+    margin-left: 0.5rem;
+}
+
+.dialog1{
+    position: absolute;
+    left: 50%;
+
+    top: -100px;
+    left: -75px;
+
+    width: 150px;
+    height: 100px;
+    padding: 0px 5px 5px 5px;
+    background-color: #f0f0f0;
+
+    box-shadow: 10px 5px 5px gray;
+    border-radius: 3px;
+
+    z-index: 3;
+
+    animation: pop-up 0.15s ease-in-out;
+}
+
+@keyframes pop-up{
+    0% { transform: scale(0);}
+    50% { transform: scale(0.5);}
+    100% { transform: scale(1);}
+}
+
+.btn1{
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+
+    width: 100%;
+    z-index: 3;
+
+    &:hover .regularSVG{
+        display: none;
+    }
+    
+    & .regularSVG{
+        display: inline;
+    }
+    
+    &:hover .hoverSVG{
+        color: #464feb;
+        display: inline
+    }
+    
+    & .hoverSVG{
+        display: none;
+    }
+}
+
+
+
+.dialog1 div+div{
+    margin-top: 10px;
+}
+
+.dialog1 span{
+    padding-left: 10px;
+}
