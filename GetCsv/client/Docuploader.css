@@ -1,0 +1,18 @@
+input[type="file"] {
+    display: none;
+}
+
+.box-upload{
+    width: 20px;
+    max-height: 20px;
+    margin-left: 0.5rem;
+    color: #333333;
+    &:hover{
+        color: #464feb;
+    }
+
+}
+
+.btn-modals{
+    transform: translateY(-2px);
+}
