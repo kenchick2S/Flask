@@ -1,0 +1,282 @@
+from langchain.pydantic_v1 import BaseModel, Field
+from langchain.tools import BaseTool, StructuredTool, tool
+
+from getCustomerDataset import  getCsvDataset
+
+from getSummary import getSummary
+from getFAISS import getFAISS
+
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.messages import AIMessage
+
+from langchain.agents import create_structured_chat_agent
+from langchain.agents import AgentExecutor
+
+import os
+
+# === LLM ===
+from langchain_community.llms import Ollama
+
+# llm = Ollama(model = "llama3", temperature = 0, num_predict=320)
+# llm2 = Ollama(model = "gemma:2b", temperature = 0.2)
+llm = Ollama(model = "mistral", temperature = 0.1) #llama3-chatqa:8b, qwen:4b(Alibaba), aya:8b(Cohere), phi3 (3.8B)(Microsoft), gemma:2b zhaoyun/phi3-128k-chinese
+
+SummaryFunc = getSummary(llm) # 宣告一個儲存資料和做總結的物件
+RetrievalQA = getFAISS(llm)
+
+
+def get_fields(directory):    
+    with open(directory+"tables.txt", 'r') as file:
+        result = file.read()
+    
+    return result
+
+def get_metadata(directory):    
+    with open(directory+"metadata.txt", 'r', encoding='utf-8') as file:
+        result = file.read()
+    
+    return result
+
+def get_tables_name(directory):
+    name_list = []
+    for csv in os.listdir(directory):
+        csv_name, csv_extentsion = csv.split('.')
+        if  csv_extentsion == "csv":
+            name_list.append(csv_name)
+    
+    return ", ".join(name for name in name_list)
+
+def generate_SQL(table_inform, msg):
+    print("input: " + msg + "\n")
+    system = f'''
+    Expected a SQL Command for Tables.
+
+    Below is information about Tables
+    Table Name | Field Names
+    {table_inform}
+
+    Rules:
+    1. May need to join the tables, when the field names in WHERE is not included in tables.
+    2. Must be as same as Table Name and Field Names when using them.
+
+
+    Common Errors:
+    1. Error: WHERE clause cannot contain aggregates!
+
+
+    Return as format 'SELECT DISTINCT ... FROM ... ;', SQL command must end by ';'
+    '''
+    # 1. Give the Date field as format 'YYYYMMDD', ex. Date field = '20240101'
+    # 2. If input question said before the Date, then let Date field <= '20240101' in SQL command
+    # 4. Use SELECT * when user ask the entire data.
+    # 2. Use SELECT * when user ask the entire data.
+    # 1. May need to join the tables, when the field names in WHERE is not included in tables.
+    # 2. Binder Error: Table 'table' does not have a column named 'XXX'
+    # 3. Catalog Error: Table with name 'XXX' does not exist!
+
+    human = '''{input}
+
+        (Please respond a SQL Command)'''
+
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", system),
+            ("human", human),
+        ]
+    )
+    print("Processing ...")
+    return llm.invoke(prompt.format(input=msg))
+
+def reload():
+    # === searchOracleInput ===
+    class SearchOracleInput(BaseModel):
+        Input_Question: str = Field(description=f'''
+        Expected a Input Question as String.
+
+        ''')
+
+    def search_from_oracle(Input_Question: str) -> str:
+        # 加入 API， return 查詢結果
+        table_inform = get_fields("./database/Oracle/") + "\n"
+        sqlCommand = generate_SQL(table_inform, SummaryFunc.Input_Question)
+        return SummaryFunc.store_dataset(getCsvDataset.dataset_query_sql("./database/Oracle", sqlCommand))
+        
+        # return "OK"
+
+    searchFromOracle = StructuredTool.from_function(
+        func=search_from_oracle,
+        name="search from Oracle",
+        description= f"{get_metadata('./database/Oracle/')}, if required data is relative, use 'search from Oracle'.",
+        args_schema=SearchOracleInput,
+        return_direct=True,
+        # coroutine= ... <- you can specify an async method if desired as well
+    )
+    # old description: Search from Oracle_tables includes {get_tables_name("./database/Oracle")}, if required data is relative to Oracle_tables, use 'search from Oracle'. 
+
+    # === searchFileInput ===
+    class SearchFileInput(BaseModel):
+        Input_Question: str = Field(description=f'''
+        Expected a Input Question as String.
+
+        ''')
+
+    def search_from_file(Input_Question: str) -> str:
+        table_inform = get_fields("./database/File/") + "\n" 
+        sqlCommand = generate_SQL(table_inform, SummaryFunc.Input_Question)
+
+        return SummaryFunc.store_dataset(getCsvDataset.dataset_query_sql("./database/File", sqlCommand))
+        
+
+    searchFromFile = StructuredTool.from_function(
+        func=search_from_file,
+        name="search from File",
+        description=f"{get_metadata('./database/File/')}, if required data is relative, use 'search from File'.",
+        args_schema=SearchFileInput,
+        return_direct=True,
+        # coroutine= ... <- you can specify an async method if desired as well
+    )
+
+    # === searchSQLInput ===
+    class SearchSQLInput(BaseModel):
+        Input_Question: str = Field(description=f'''
+        Expected a Input Question as String.
+        ''')
+
+    def search_from_sql(Input_Question: str) -> str:
+
+        table_inform = get_fields("./database/SQL/") + "\n" 
+        sqlCommand = generate_SQL(table_inform, SummaryFunc.Input_Question)
+        return SummaryFunc.store_dataset(getCsvDataset.dataset_query_sql("./database/SQL", sqlCommand))
+        
+        # return "OK"
+
+    searchFromSQL = StructuredTool.from_function(
+        func=search_from_sql,
+        name="search from MSSQL",
+        description=f"{get_metadata('./database/SQL/')}, if required data is relative, use 'search from MSSQL'.",
+        args_schema=SearchSQLInput,
+        return_direct=True,
+        # coroutine= ... <- you can specify an async method if desired as well
+    )
+
+    # === searchResultInput ===
+    class SearchResultInput(BaseModel):
+        Input_Question: str = Field(description=f'''
+        Expected a Input Question as String.
+        ''')
+
+    def search_from_result(Input_Question: str) -> str:
+
+        return SummaryFunc.query(SummaryFunc.Input_Question)
+        
+        # return "OK"
+
+    searchFromResult = StructuredTool.from_function(
+        func=search_from_result,
+        name="search from Result",
+        description=f''' 如果使用者有提到"上述結果中"或是有意圖要透過之前的查詢結果再做更深入的查詢，請使用這個工具。
+                        ''',
+        args_schema=SearchResultInput,
+        return_direct=True,
+        # coroutine= ... <- you can specify an async method if desired as well
+    )
+
+
+
+    # === All Tools ===
+    tools = [searchFromOracle, searchFromFile, searchFromSQL, searchFromResult] 
+
+
+    # === Memory ===
+    # from langchain.memory import ConversationBufferWindowMemory
+    # from langchain.agents import load_tools
+
+    # memory = ConversationBufferWindowMemory(
+    #     memory_key="chat_history", k=2, return_messages=True, output_key="output"
+    # )# , output_key="output"
+
+    # === Prompt Template ===
+    system = '''
+        Respond to the human as helpfully and accurately as possible. You have access to the following tools:
+
+        {tools}
+
+        Use a json blob to specify a tool by providing an action key (tool name) and an action_input key (tool input).
+
+        Valid "action" values: "Final Answer" or {tool_names}
+
+        Provide only ONE action per $JSON_BLOB, as shown:
+
+        ```
+        {{
+            "action": $TOOL_NAME,
+            "action_input": $INPUT
+        }}
+        ```
+
+        Follow this format:
+
+        Question: input question to answer
+        Thought: consider previous and subsequent steps
+        Action:
+        ```
+        $JSON_BLOB
+        ```
+        Observation: action result
+        ... (repeat Thought/Action/Observation N times)
+        Thought: I know what to respond
+        Action:
+        ```
+        {{
+            "action": "Final Answer",
+            "action_input": "Final response to human"
+        }}
+        ```
+        Begin! Reminder to ALWAYS respond with a valid json blob of a single action. 
+        Use tools if necessary. 
+        Respond directly if appropriate. 
+        Format is Action:```$JSON_BLOB```then Observation
+        '''
+        # Use tools if necessary. 
+        # Respond directly if appropriate. 
+        # Format is Action:```$JSON_BLOB```then Observation
+    human = '''{input}
+
+        {agent_scratchpad}
+
+        (reminder to respond in a JSON Blob without annotations no matter what)'''
+
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", system),
+            # MessagesPlaceholder("chat_history", optional=True),
+            ("human", human),
+        ]
+    )
+
+    # === Agent ===
+    my_agent = create_structured_chat_agent(llm, tools, prompt)
+    # === Agent Executor ===
+    return AgentExecutor(agent = my_agent, verbose=True, tools = tools, max_iterations=3) #, handle_parsing_errors=True
+
+Agent_Executor = reload()
+
+if __name__ == "__main__":
+
+    import time
+    # print(f'''Search for the desired data from one of table in File_tables and returns the search results.
+    #                     File_tables includes: {get_tables_name("./database/File")}''')
+
+    while True:
+        data = input("Message: ")
+        if 'Exit' == data:
+            break
+
+        SummaryFunc.Input_Question = data
+
+        start = time.time()
+        print(Agent_Executor.invoke({"input": data}))
+        end = time.time()
+
+        print(f"\nTotal time: {end - start}")
+        print("\n\n")
