@@ -1,0 +1,152 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+import './Table.css'
+
+function HtmlRenderer() {
+  const [resultBtn, setResultBtn] = useState([]);
+  const [rowsData, setRowsData] = useState([]);
+  const [colsName, setColsName] = useState([]);
+  const [question, setQuestion] = useState("");
+  const [id, setID] = useState(5);
+
+
+  const generate_rowsData = (data) => {
+      let tmp = [];
+      Object.values(data).forEach((column) => tmp.push(<td>{column}</td>));
+      return tmp;
+  } 
+
+  function sort_func(e){
+    try{
+      let index = e.target.id;
+      let type = document.querySelectorAll('tbody>tr')[0].children[index].innerText;
+      let isNumber = /^\d+$/.test(type);
+
+      e.target.children[0].className = e.target.children[0].className === 'asc' ? 'desc' : 'asc';
+      let order = e.target.children[0].className;
+
+      let tbody = document.querySelector('tbody');
+      let trs = tbody.querySelectorAll('tr');
+      let orderList;
+      orderList = Array.prototype.slice.call(trs).sort(function (a, b) {
+        a = a.querySelectorAll('td')[index].innerHTML;
+        b = b.querySelectorAll('td')[index].innerHTML;
+        if (isNumber) {
+          if (order === 'asc') {
+            return a - b;
+          } else if (order === 'desc') {
+            return b - a;
+          }
+        } else if (order === 'asc') {
+          return a.localeCompare(b, 'zh');
+        } else if (order === 'desc') {
+          return b.localeCompare(a, 'zh');
+        }
+        return null;
+      });
+      Array.prototype.slice.call(orderList).forEach((orderItem) => {
+        tbody.appendChild(orderItem);
+      });
+    } catch(error) {
+      console.log('Error Sorting:', error);
+    }
+  }
+
+  // 更新表格資料
+  useEffect(() => {
+    // 在 useEffect 中發送 HTTP 請求
+    async function fetchHtmlData() {
+      try {
+        const response = await axios.get( `http://localhost:5001/table?id=${id}`);
+
+        let htmlData = response.data[0].data;
+        // console.log(htmlData);
+        if(typeof(htmlData) === "string"){
+          htmlData = JSON.parse(htmlData);
+        }
+        let tmp_rowsData = [];
+        let tmp_colsName = [];
+
+        for (let i=0; i < htmlData.length; i++) {
+          tmp_rowsData.push(<tr>{generate_rowsData(htmlData[i])}</tr>);
+        }
+        Object.keys(htmlData[0]).forEach((col_name, index) => tmp_colsName.push(<th scope="col" id={index}>{col_name}<span className="asc"></span></th>));
+
+        setColsName(tmp_colsName);
+        setRowsData(tmp_rowsData);
+        setQuestion(response.data[0].question);
+
+        let rows = []
+        let count = response.data[0].count
+        if(count > 5){
+          for (let i=count; i < count+5; i++) {
+            rows.push(<><input id={"tab"+(i+1-count)} type="radio" name="tab" onChange={() => setID(i-count)}/><label htmlFor={"tab"+(i+1-count)}>第{i-4}個查詢結果</label></>);
+          }
+        }
+        else{
+          for (let i=0; i < count; i++) {
+            rows.push(<><input id={"tab"+(i+1)} type="radio" name="tab" onChange={() => setID(i)}/><label htmlFor={"tab"+(i+1)}>第{i+1}個查詢結果</label></>);
+          }
+        }
+        setResultBtn(rows);
+
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    }
+    if(id !== undefined){
+      fetchHtmlData() // 調用函數以觸發 HTTP 請求
+    }
+  }, [id]);
+
+  // 更新表頭的 EventListener，點擊表頭會排序
+  useEffect(() => {
+    let ths = document.querySelectorAll('th');
+    ths.forEach((node) => {
+      node.addEventListener('click', sort_func);
+    });
+    
+    return () => {
+      ths.forEach((node) => {
+        node.removeEventListener('click', sort_func);
+      });
+    }
+
+  }, [rowsData])
+
+  useEffect(() => {
+    let length = document.getElementsByTagName("input").length;
+    if(length !== 0){
+        document.getElementsByTagName("input")[length-1].defaultChecked = 'true'
+    }
+  }, [resultBtn])
+
+  return (
+    <>
+      <div className="tab_css">
+        {resultBtn}
+      </div>
+      <h3>{question}</h3>
+      <table id="table">
+          <thead>
+              <tr>
+                  {colsName}		
+              </tr>
+          </thead>
+          <tbody>
+            {rowsData}
+          </tbody>
+          {/* <tfoot>
+                <tr>
+                    <th scope="row" colspan={(htmlData[0].keys().length) -1}>Total</th>
+                    <td>{ htmlData.length }</td>
+                </tr>
+            </tfoot> */}
+		  </table>
+    </>
+  );
+}
+
+
+export default HtmlRenderer;
