@@ -1,0 +1,17 @@
+import base64
+
+image_name = './client/src/assets/ai.jpg'
+
+with open(image_name, 'rb') as f:
+    encode = base64.b64encode(f.read())
+
+print(type(encode))
+
+with open('ai.txt', 'wb+') as f:
+    f.write(encode)
+
+with open('ai.txt', 'rb') as f:
+    encode = f.read()
+
+with open('ai.jpg', 'wb+') as f:
+    f.write(base64.b64decode(encode))
