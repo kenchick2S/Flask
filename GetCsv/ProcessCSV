@@ -1,0 +1,38 @@
+import pandas as pd
+import os
+
+'''
+    用來更改某個資料夾底下的 CSV ，以及更改後要變更的 tables.txt
+'''
+
+folder = "./database/Oracle/"
+
+change_csv = False   # 要更改CSV資料，就改成 True
+
+change_tables = True
+
+# 更改CSV資料
+
+if(change_csv):
+    filename = "客戶交易資料表.csv"
+    input_csv = pd.read_csv(folder+filename, encoding='utf-8')
+    input_csv.to_csv(folder+filename, sep=',', index=False, encoding='utf-8')
+
+    input_csv["Transaction_Amount"] = (input_csv["Transaction_Amount"]*0.05).astype(int)  # 更改某欄位資料
+
+    input_csv.rename(columns={'Transaction_Amount': 'Margin'}, inplace = True)   # 欄位重新命名 
+
+    print(input_csv)
+
+    newFileName = '員工業績資料表.csv'
+
+    # input_csv.to_csv(folder+newFileName, sep=',', index=False, encoding='utf-8')
+
+# 更改 tables.txt
+
+if(change_tables):
+    with open(folder+"tables.txt", 'w') as file:
+        for csv in os.listdir(folder):
+            csv_name, csv_extentsion = csv.split('.')
+            if  csv_extentsion == "csv":
+                file.writelines(csv_name+" | "+", ".join(column for column in list(pd.read_csv(folder+csv, nrows=0).columns))+"\n")
