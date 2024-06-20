@@ -19,11 +19,10 @@ import { FunctionDialogContext } from './Context';
 
 function App() {
 	const [userInput, setUserInput] = useState('');
-	const [messages, setMessages] = useState([{HumanInput: "123", AiResponse: "456",}]);
+	const [messages, setMessages] = useState([]);
 	const [loading, setLoading] = useState(false);
 	const [analysis, setAnalysis] = useState(false);
 	const [query, setQuery] = useState(false);
-	
 
 	const handleInputChange = (e) => {
 			setUserInput(e.target.value);
@@ -33,9 +32,11 @@ function App() {
 	const handleSendMessage = async (e) => {
 		e.preventDefault();
 		let api = '';
+		let waiting = "";
 		if(analysis){
 			console.log("analysis");
-			api = 'http://localhost:5001/get_analysis';
+			api = 'http://localhost:5001/get_summary_test';
+			waiting = "請等待總結"
 		}
 		else if(query){
 			console.log("query");
@@ -43,48 +44,103 @@ function App() {
 		}
 		else{
 			api ='http://localhost:5001/get_answer';
+			// api ='http://localhost:5001/get_test';
+			waiting = "請等待資料查詢"
 		}
 		if(userInput !== ''){
 			setLoading(true);
-			setUserInput('')
+			setUserInput('');
+			let userInputTime = new Date();
+
 			const loadingMessage = {
 				HumanInput: userInput,
-				AiResponse: "請等待",
+				AiResponse: waiting,
+				HumanTime: userInputTime.toLocaleString(),
+				AiTime: "",
 			};
+			// console.log('this loadingMessage:', loadingMessage);
+
 			setMessages((prevMessages) => [...prevMessages, loadingMessage]);
 
 			axios.post(api, {
 				inputText : userInput
 			})
 			.then(function (response){
-				console.log(response.data.response)
-				console.log(messages)
 				//console.log('status:', response.status)
 				var status = response.status;
 				const resp = status === 200 ? response.data.response : '暫時無法解析您的問題';
-				if (resp === "完成資料搜尋"){
-					window.open('/table', '表格資料', 'height=80%');
+				let result;
+				var AiResponseTime ="";
+
+				if (resp === '完成資料搜尋' || resp === '測試'){
+					result = '請等待總結'
+
+					window.open('/table', "表格資料", 'height=80%').focus();
+
+					/* 資料分析 START*/
+					axios.get(
+						'http://localhost:5001/get_summary'
+					).then(function (response){
+						var status_summary = response.status;
+						const resp_summary= status_summary === 200 ? response.data.response : '暫時無法分析資料';
+						let AiResponseTime = new Date();
+
+						const newMessage = {
+							HumanInput: userInput,
+							AiResponse: resp_summary,
+							HumanTime: userInputTime.toLocaleString(),
+							AiTime: AiResponseTime.toLocaleString(),
+						};
+						setMessages((prevMessages) => [...prevMessages.slice(0, -1), newMessage]);
+					}).catch(function (err){
+						alert(`Error: ${err}`);
+						let AiResponseTime = new Date();
+		
+						const newMessage = {
+							HumanInput: userInput,
+							AiResponse: "請重新嘗試",
+							HumanTime: userInputTime.toLocaleString(),
+							AiTime: AiResponseTime.toLocaleString(),
+						};
+						setMessages((prevMessages) => [...prevMessages.slice(0, -1), newMessage]);
+					})
+					.finally(() => {
+						setLoading(false)
+					});
+					/* 資料分析 END */
 				}
-				//console.log('flaskRes:', resp)
+				else{
+					result = resp;
+					setLoading(false);
+					AiResponseTime = new Date();
+					AiResponseTime = AiResponseTime.toLocaleString()
+				}
+
 				const newMessage = {
 					HumanInput: userInput,
-					AiResponse: resp,
+					AiResponse: result,
+					HumanTime: userInputTime.toLocaleString(),
+					AiTime: AiResponseTime,
 				};
-				//console.log('this newMessage:', newMessage);
+				// console.log('this newMessage:', newMessage);
 				setMessages((prevMessages) => [...prevMessages.slice(0, -1), newMessage]);
 			})
 			.catch(function (err){
-				alert(`Error: ${err}`);
+				alert(`${err}`);
+				setLoading(false);
+				let AiResponseTime = new Date();
 
 				const newMessage = {
 					HumanInput: userInput,
 					AiResponse: "請重新嘗試",
+					HumanTime: userInputTime.toLocaleString(),
+					AiTime: AiResponseTime.toLocaleString(),
 				};
 				setMessages((prevMessages) => [...prevMessages.slice(0, -1), newMessage]);
 			})
-			.finally(() => {
-				setLoading(false)
-			});
+			// .finally(() => {
+			// 	setLoading(false)
+			// });
 		};
 	};
 
@@ -102,6 +158,8 @@ function App() {
 						{messages.map((message, index) => (
 						<div key={index}>
 							{message.HumanInput && 
+								<>
+								<div className="humanTime">{message.HumanTime}</div>
 								<div className="dialog human">
 									<div style={{ whiteSpace: 'pre-wrap' }} className="human-box">
 										{message.HumanInput}
@@ -110,13 +168,15 @@ function App() {
 										src={human_pic} 
 									/>
 								</div>
+								</>
 							}
+							<div className="AiTime">{message.AiTime}</div>
 							<div className="dialog ai">
 								<img alt="" className="img-profile" 
 									src={ai_pic} 
 								/>
 								<div style={{ whiteSpace: 'pre-wrap' }} className="ai-box">
-									<span>{message.AiResponse}</span>{loading && (message.AiResponse === '請等待') && <span className="dot"></span>}
+									<span>{message.AiResponse}</span>{loading && (message.AiResponse === '請等待資料查詢' || message.AiResponse === '請等待總結') && <span className="dot"></span>}
 								</div>
 							</div>
 						</div>))}
