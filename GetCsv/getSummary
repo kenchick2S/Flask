@@ -1,0 +1,160 @@
+from langchain_core.prompts import ChatPromptTemplate
+import duckdb
+
+from datetime import datetime
+import json
+import os
+
+class getSummary:
+
+    
+    def __init__(self, llm):
+        self.llm = llm
+        self.datasets = []
+        self.Input_Question = ""
+        self.history = []
+        self.count = 0
+
+        self.test_folder = "./database/For_Summary_Test/"
+        self.test_jsonfile = "files.json"
+    
+    def store_dataset(self, dataset, test=False):
+
+        if len(self.datasets) == 5:
+            self.datasets.pop(0)
+            self.history.pop(0)
+        self.datasets.append(dataset)
+        self.history.append(self.Input_Question)
+        self.count += 1
+
+        # 彙總測試，儲存查詢結果用 START
+        if(not test):
+            time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+            dataset.to_csv(self.test_folder+time+'.csv', sep=',', index=False, encoding='utf-8')
+
+            if not os.path.isfile(self.test_folder + self.test_jsonfile):
+                with open(self.test_folder + self.test_jsonfile, 'w+') as f:
+                    json.dump({}, f)
+            
+            with open(self.test_folder + self.test_jsonfile, 'r') as f:
+                data = json.load(f)
+
+            with open(self.test_folder + self.test_jsonfile, 'w+') as f:
+                if self.Input_Question in data.keys():
+                    os.remove(self.test_folder + data[self.Input_Question])
+                data[self.Input_Question] = time+'.csv'
+                json.dump(data, f)
+        # 彙總測試，儲存查詢結果用 END
+
+        # print(f"Dataset Type: {type(self.dataset)}")
+        return dataset
+    
+    # 彙總功能
+    def summary(self):
+        try:
+            system = f'''
+                I want you to act as a data scientist and generate statistical analysis according to the user question as concise as possible.
+                Don't give me any code for programming.
+                
+                Here is raw data:
+                ===
+                {self.datasets[len(self.datasets)-1].to_string(index=False)}
+                ===
+                '''
+
+            human = '''{input}
+
+                (請針對我的問題用繁體中文做總結)'''
+
+            prompt = ChatPromptTemplate.from_messages(
+                [
+                    ("system", system),
+                    ("human", human),
+                ]
+            )
+            print("Summarizing ...")
+            return self.llm.invoke(prompt.format(input=self.Input_Question))
+        except:
+            return "無法做資料分析"
+
+    # 深入查詢功能  (LangChain_Agent 的 Tool: searchFromResult)
+    def query(self, msg):
+        try:
+
+            if len(self.datasets) == 0:
+                return "尚未有資料"
+                
+            fields = ""
+
+            if(self.count > 5):
+                for i, dataset in enumerate(self.datasets):
+                        table_name = f"table{i+1}"
+                        locals()[table_name] = dataset
+                        fields += (f"第{i-4+self.count}個查詢結果 | {', '.join(column for column in list(dataset.columns))}\n")
+            else:
+                for i, dataset in enumerate(self.datasets):
+                        table_name = f"table{i+1}"
+                        locals()[table_name] = dataset
+                        fields += (f"第{i+1}個查詢結果 | {', '.join(column for column in list(dataset.columns))}\n")
+            
+
+
+            system = f'''
+                Expected a SQL Command for tables.
+
+                May need to join the tables, When the required fields appear in more than two tables.
+                Below is information about Tables
+                Table Name | Field Names
+                {fields}
+
+                Rules:
+                1. May need to join the tables, when the field names in WHERE is not included in tables.
+                2. Must be as same as Table Name and Field Names when using them.
+
+
+                Common Errors:
+                1. Error: WHERE clause cannot contain aggregates!
+
+
+                Return as format 'SELECT ... FROM ... ;', SQL command must end by ';'
+            '''
+
+            human = '''{input}
+
+                (Please respond a SQL Command)'''
+
+            prompt = ChatPromptTemplate.from_messages(
+                [
+                    ("system", system),
+                    ("human", human),
+                ]
+            )
+            print("Deeper Query ...")
+            query = self.llm.invoke(prompt.format(input=msg))
+            print(query)
+
+            if(self.count > 5):
+                for i in range(len(self.datasets)):
+                    query = query.replace(f"第{i-4+self.count}個查詢結果", f"table{i+1}")
+                    print(f"第{i-4+self.count}個查詢結果", f"table{i+1}")
+            else:    
+                for i in range(len(self.datasets)):
+                    query = query.replace(f"第{i+1}個查詢結果", f"table{i+1}")
+                    print(f"第{i+1}個查詢結果", f"table{i+1}")
+
+            query = query[query.find('SELECT'): query.find(';')]
+
+            print("final query: \n"+query)
+
+            return duckdb.query(query).df().to_string()
+
+        except Exception as e:
+            print(str(e))
+            return "需要更詳細的描述"
+    
+    def get_dataset(self):
+        try:
+            return self.datasets
+        except:
+            return "無法做資料分析"
