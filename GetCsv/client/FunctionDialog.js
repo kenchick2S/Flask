@@ -1,3 +1,4 @@
+
 import { useContext, useRef} from 'react'
 
 import './FunctionDialog.css'
@@ -30,8 +31,8 @@ export default function FunctionDialog(){
                 {/* <div style={{width: '100vw', height: '100vh', position: 'fixed', top: 0, left: 0, zIndex: 2, pointerEvents: "none"}} onClick={() => setClicked(!Clicked)}></div> */}
                 <div ref={dialog} role="dialog" className="dialog1" style={{display: 'none'}}>
                     <div style={{borderBottom: '1px solid', lineHeight: '18px', fontSize: '18px', textAlign: 'left', padding: '5px'}}>功能選單:</div> 
-                    <div><input type="checkbox" checked={context.analysis_state} onChange={() => context.analysis_setter(!context.analysis_state)}></input><span>資料分析</span></div>
-                    <div><input type="checkbox" checked={context.query_state} onChange={() => context.query_setter(!context.query_state)}></input><span>資料查詢</span></div>
+                    <div><input type="checkbox" checked={context.analysis_state} onChange={() => context.analysis_setter(!context.analysis_state)}></input><span>彙總功能測試</span></div>
+                    <div><input type="checkbox" checked={context.query_state} onChange={() => context.query_setter(!context.query_state)}></input><span>RAG功能</span></div>
                 </div>
             <div role="button" className="btn1" onClick={() => dialogControl()}><CopilotSVG/><CopilotSVG2/></div>
         </div>
