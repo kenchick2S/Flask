@@ -1,4 +1,5 @@
 
+
 function PaperClipSVG(){
 	return(
 		<svg 
@@ -54,4 +55,47 @@ function CopilotClipSVG(){
 	)
 }
 
-export {ArrowSVG, PaperClipSVG, CopilotSVG, CopilotClipSVG, CopilotSVG2};
+function NavBarSVG(){
+	return (
+		<svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" className="octicon">
+			<path d="M1 2.75A.75.75 0 0 1 1.75 2h12.5a.75.75 0 0 1 0 1.5H1.75A.75.75 0 0 1 1 2.75Zm0 5A.75.75 0 0 1 1.75 7h12.5a.75.75 0 0 1 0 1.5H1.75A.75.75 0 0 1 1 7.75ZM1.75 12h12.5a.75.75 0 0 1 0 1.5H1.75a.75.75 0 0 1 0-1.5Z"></path>
+		</svg>
+	)
+}
+
+function CancelSVG(){
+	return (
+		<svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" className="octicon">
+			<path d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.749.749 0 0 1 1.275.326.749.749 0 0 1-.215.734L9.06 8l3.22 3.22a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215L8 9.06l-3.22 3.22a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z"></path>
+		</svg>
+	)
+}
+
+function UploadSVG(){
+	return (
+		<svg id='Harddrive_Upload_24' width='120' height='120' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg' xmlnsXlink='http://www.w3.org/1999/xlink'>
+			<rect width='24' height='24' stroke='none' fill='#000000' opacity='0'/>
+			<g transform="matrix(0.83 0 0 0.83 12 12)" >
+				<g>
+					<g transform="matrix(1 0 0 1 0.5 -5.5)" >
+						<path style={{stroke: 'rgb(0,0,0)', strokeWidth: 1, strokeDasharray: 'none', strokeLinecap: 'round', strokeDashoffset: 0, strokeLinejoin: 'round', strokeMiterlimit: 4, fill: 'none', fillRule: 'nonzero', opacity: 1}} transform=" translate(-12.5, -6.5)" d="M 12.5 0.5 L 12.5 12.5" stroke-linecap="round" />
+					</g>
+					<g transform="matrix(1 0 0 1 0.5 -9.5)" >
+						<path style={{stroke: 'rgb(0,0,0)', strokeWidth: 1, strokeDasharray: 'none', strokeLinecap: 'round', strokeDashoffset: 0, strokeLinejoin: 'round', strokeMiterlimit: 4, fill: 'none', fillRule: 'nonzero', opacity: 1}} transform=" translate(-12.5, -2.5)" d="M 16.5 4.5 L 12.5 0.5 L 8.5 4.5" stroke-linecap="round" />
+					</g>
+					<g transform="matrix(1 0 0 1 7.25 8.5)" >
+						<path style={{stroke: 'rgb(0,0,0)', strokeWidth: 1, strokeDasharray: 'none', strokeLinecap: 'round', strokeDashoffset: 0, strokeLinejoin: 'round', strokeMiterlimit: 4, fill: 'none', fillRule: 'nonzero', opacity: 1}} transform=" translate(-19.25, -20.5)" d="M 20 20.5 L 18.5 20.5" stroke-linecap="round" />
+					</g>
+					<g transform="matrix(1 0 0 1 0 5.5)" >
+						<path style={{stroke: 'rgb(0,0,0)', strokeWidth: 1, strokeDasharray: 'none', strokeLinecap: 'round', strokeDashoffset: 0, strokeLinejoin: 'round', strokeMiterlimit: 4, fill: 'none', fillRule: 'nonzero', opacity: 1}} transform=" translate(-12, -17.5)" d="M 6.5 11.5 L 5.5 11.5 L 1.14 16.732 C 0.7553571534507089 17.24444688389151 0.5325029373835622 17.860081655777 0.5000000000000007 18.5 L 0.5 21.5 C 0.5032948011120748 22.603201866237573 1.396798133762427 23.496705198887927 2.5000000000000004 23.5 L 21.5 23.5 C 22.603201866237573 23.496705198887927 23.496705198887927 22.603201866237573 23.5 21.5 L 23.5 18.5 C 23.467497062616438 17.860081655777 23.24464284654929 17.24444688389151 22.86 16.732 L 18.5 11.5 L 17 11.5" stroke-linecap="round" />
+					</g>
+					<g transform="matrix(1 0 0 1 0 5.5)" >
+						<path style={{stroke: 'rgb(0,0,0)', strokeWidth: 1, strokeDasharray: 'none', strokeLinecap: 'round', strokeDashoffset: 0, strokeLinejoin: 'round', strokeMiterlimit: 4, fill: 'none', fillRule: 'nonzero', opacity: 1}} transform=" translate(-12, -17.5)" d="M 0.713 17.5 L 23.287 17.5" stroke-linecap="round" />
+					</g>
+				</g>
+			</g>
+		</svg>
+	)
+}
+
+export {ArrowSVG, PaperClipSVG, CopilotSVG, CopilotClipSVG, CopilotSVG2, NavBarSVG, CancelSVG, UploadSVG};
