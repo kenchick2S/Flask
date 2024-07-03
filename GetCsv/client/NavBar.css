@@ -1,0 +1,37 @@
+.navbar{
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    height: 100vh;
+
+    background-color: white;
+
+    z-index: 1;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+}
+
+.navbar_btn{
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.navbar_close_btn{
+    margin-left: auto;
+    margin-right: 5px;
+}
+
+.octicon{
+    display: inline-block;
+    overflow: visible !important;
+    vertical-align: text-bottom;
+    fill: currentColor;
+}
+
+.navbar-item{
+    padding: 0.5rem;
+}
