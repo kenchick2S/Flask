@@ -6,3 +6,9 @@ export const FunctionDialogContext = createContext({
     query_state: null,
     query_setter: null
 });
+
+const NavBarContext = createContext({
+    tab_setter: null
+});
+
+export {NavBarContext};
