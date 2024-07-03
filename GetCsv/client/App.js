@@ -5,12 +5,13 @@ import './App.css';
 import human_pic from './assets/human.jpg';
 import ai_pic from './assets/ai.jpg';
 
-import DocUploader from './DocUploader';
-import FunctionDialog from './FunctionDialog';
+import DocUploadPage from './DocUploadPage';
 
 import { ArrowSVG } from './SVG';
 
-import { FunctionDialogContext } from './Context';
+import {NavBarContext} from './Context';
+
+import NavBar from './NavBar';
 
 // Scroll bar 聊天內容增加就自動向下
 // 新增聊天以及歷史紀錄
@@ -21,8 +22,11 @@ function App() {
 	const [userInput, setUserInput] = useState('');
 	const [messages, setMessages] = useState([]);
 	const [loading, setLoading] = useState(false);
+
+	const [showTab, setTab] = useState([true, false]);
+	
 	const [analysis, setAnalysis] = useState(false);
-	const [query, setQuery] = useState(false);
+	const [check, setCheck] = useState(false);
 
 	const handleInputChange = (e) => {
 			setUserInput(e.target.value);
@@ -35,17 +39,18 @@ function App() {
 		let waiting = "";
 		if(analysis){
 			console.log("analysis");
+			setAnalysis(true);
 			api = 'http://localhost:5001/get_summary_test';
-			waiting = "請等待總結"
+			waiting = "請等待總結";
 		}
-		else if(query){
-			console.log("query");
-			api = 'http://localhost:5001/get_qa';
+		else if(check){
+			api = 'http://localhost:5001/get_query';
+			waiting = "請等待資料查詢";
 		}
 		else{
 			api ='http://localhost:5001/get_answer';
 			// api ='http://localhost:5001/get_test';
-			waiting = "請等待資料查詢"
+			waiting = "請等待回覆";
 		}
 		if(userInput !== ''){
 			setLoading(true);
@@ -71,6 +76,13 @@ function App() {
 				const resp = status === 200 ? response.data.response : '暫時無法解析您的問題';
 				let result;
 				var AiResponseTime ="";
+				
+				if(response.data.check === 'True'){
+					setCheck(true);
+				}
+				else{
+					setCheck(false);
+				}
 
 				if (resp === '完成資料搜尋' || resp === '測試'){
 					result = '請等待總結'
@@ -138,9 +150,6 @@ function App() {
 				};
 				setMessages((prevMessages) => [...prevMessages.slice(0, -1), newMessage]);
 			})
-			// .finally(() => {
-			// 	setLoading(false)
-			// });
 		};
 	};
 
@@ -149,7 +158,12 @@ function App() {
 	return (
 		<>
 			<div className="bg"/>
-			<div className="chatbox">
+			<NavBarContext.Provider value={{
+				tab_setter: setTab,
+			}}>
+				<NavBar/>
+			</NavBarContext.Provider>
+			{showTab[0] && <div className="chatbox">
 				<div className="chat scrollbar">
 					<div className="chat-title">
 						聊天室
@@ -176,7 +190,7 @@ function App() {
 									src={ai_pic} 
 								/>
 								<div style={{ whiteSpace: 'pre-wrap' }} className="ai-box">
-									<span>{message.AiResponse}</span>{loading && (message.AiResponse === '請等待資料查詢' || message.AiResponse === '請等待總結') && <span className="dot"></span>}
+									<span>{message.AiResponse}</span>{loading && (message.AiResponse.includes("請等待")) && <span className="dot"></span>}
 								</div>
 							</div>
 						</div>))}
@@ -200,7 +214,7 @@ function App() {
 						checked={Checked}
 						onChange={handleCheck}
 						data={"資料分析"}
-					/> */}
+					/>
 					<DocUploader/>
 					<FunctionDialogContext.Provider value={{
 						analysis_state: analysis,
@@ -209,7 +223,7 @@ function App() {
 						query_setter: setQuery
 					}}>
 						<FunctionDialog/>
-					</FunctionDialogContext.Provider>
+					</FunctionDialogContext.Provider> */}
 					<button
 						className= 'btn-send'
 						type="submit"
@@ -219,8 +233,8 @@ function App() {
 						<ArrowSVG/>
 					</button>
 				</form>
-
-			</div>
+			</div>}
+			{showTab[1] && <DocUploadPage/>}
 		</>
 	);
 }
