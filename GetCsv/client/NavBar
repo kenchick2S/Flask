@@ -1,0 +1,35 @@
+import Nav from 'react-bootstrap/Nav';
+import './NavBar.css'
+
+import React, { useState, useContext } from 'react';
+
+import { CancelSVG, NavBarSVG } from './SVG';
+import DocUploader from './DocUploader';
+
+import { NavBarContext } from './Context';
+
+function NavBar() {
+
+    const [show, setShow] = useState(false);
+    const context = useContext(NavBarContext);
+
+    return (
+        <>
+            <button className='navbar_btn' onClick={() => {setShow(!show)}}>
+                <NavBarSVG/>		
+            </button>
+            {show && <div className='navbar'>
+                <div role='button' className='navbar_close_btn' onClick={() => {setShow(false)}}> <CancelSVG/> </div>
+                {/* <Nav defaultActiveKey="/" className="flex-column">
+                <Nav.Link href="/">聊天室</Nav.Link>
+                <Nav.Link eventKey="link-1">檔案上傳</Nav.Link>
+                </Nav> */}
+                <div role='button' className='navbar-item' onClick={() => {context.tab_setter([true, false])}}>聊天室</div>
+                <div role='button' className='navbar-item' onClick={() => {context.tab_setter([false, true])}}>RAG資料管理</div>
+                <DocUploader/>
+            </div>}
+        </>
+    );
+}
+
+export default NavBar;
