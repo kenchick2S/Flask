@@ -10,7 +10,6 @@ function HtmlRenderer() {
   const [question, setQuestion] = useState("");
   const [id, setID] = useState(5);
 
-
   const generate_rowsData = (data) => {
       let tmp = [];
       Object.values(data).forEach((column) => tmp.push(<td>{column}</td>));
@@ -128,6 +127,7 @@ function HtmlRenderer() {
         {resultBtn}
       </div>
       <h3>{question}</h3>
+      <a href={`http://localhost:5001/download?id=${id}`}>下載</a>
       <table id="table">
           <thead>
               <tr>
