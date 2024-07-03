@@ -10,10 +10,15 @@ class getSummary:
     
     def __init__(self, llm):
         self.llm = llm
-        self.datasets = []
-        self.Input_Question = ""
-        self.history = []
-        self.count = 0
+
+        self.Input_Question = "" # 儲存目前使用者的問題
+        self.Action_Output = ""
+        self.datasets = [] # 儲存使用者得到的查詢結果(5個)
+        self.history = [] # 儲存使用者問過的問題(5個)
+        self.count = 0 # 回傳給前端目前總共有幾次查詢成功
+
+        self.database = ""  # 儲存這次 LangChain 選擇查詢的 database，等使用者確認 LLM 生成的問題解析沒問題後會使用。
+        self.for_sql = 'False' # 回傳給前端，讓前端換 call API (get_query)
 
         self.test_folder = "./database/For_Summary_Test/"
         self.test_jsonfile = "files.json"
@@ -47,7 +52,6 @@ class getSummary:
                 json.dump(data, f)
         # 彙總測試，儲存查詢結果用 END
 
-        # print(f"Dataset Type: {type(self.dataset)}")
         return dataset
     
     # 彙總功能
@@ -152,9 +156,3 @@ class getSummary:
         except Exception as e:
             print(str(e))
             return "需要更詳細的描述"
-    
-    def get_dataset(self):
-        try:
-            return self.datasets
-        except:
-            return "無法做資料分析"
