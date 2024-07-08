@@ -1,0 +1,10 @@
+Table Name | Metadata
+交易資料表 | 紀錄儲蓄商品的交易紀錄資料，包含交易日期、商品名稱、交易金額、ATM、分行等資訊。
+ATM資料表 | 紀錄所有 ATM 的基本資訊。
+分行資料表 | 紀錄所有分行的基本資訊。
+儲蓄商品資料表 | 紀錄所有儲蓄商品的基本資訊。
+
+ATM資料表 | ATM_ID, ATM_Location, Installation_Date, Last_Maintenance_Date, ATM_Status, Cash_Capacity, ATM_Type, Managed_By_Branch_ID
+交易資料表 | Transaction_ID, Transaction_Amount, Transaction_Date, Product_ID, Branch_ID, ATM_ID
+儲蓄商品資料表 | Product_ID, Product_Name, Product_Type, Interest_Rate, Term, Product_Description
+分行資料表 | Branch_ID, Branch_Name, Branch_Location, Branch_Manager, Opening_Date, Number_of_Employees, Branch_Contact_Number, Branch_Email, Branch_Description
