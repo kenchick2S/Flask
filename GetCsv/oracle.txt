@@ -1,0 +1,9 @@
+Table Name | Metadata
+交易資料表 | 紀錄員工和客戶的交易紀錄資料，包含交易日期、產品名稱、員工ID、客戶ID和交易金額等資訊。
+客戶資料表 | 紀錄客戶的基本資料，包含客戶ID、客戶姓名等個人資訊。
+員工資料表 | 紀錄員工的基本資料，包含員工ID、員工姓名等個人資訊。
+
+Table Name | Fields Name
+交易資料表 | Transaction_ID, Transaction_Date, E_ID, C_ID, Product_Name, Transaction_Amount, Maturity_Date, Settlement_Date, Transaction_Type, Transaction_Status, Currency, Fee_Amount, Net_Amount, Investment_Type, Approval_Status, Payment_Method, Feedback_Score, Customer_Age, Customer_Gender, Promotion_Code
+員工資料表 | Employee_ID, Employee_Name, Address, Gender, Date_of_Birth, Age, Phone_Number, Mobile_Number, Marital_Status, Email
+客戶資料表 | Customer_ID, Customer_Name, Address, Gender, Date_of_Birth, Age, Phone_Number, Mobile_Number, Marital_Status, Email
