@@ -46,40 +46,19 @@ def get_tables_name(directory):
     
     return ", ".join(name for name in name_list)
 
-def generate_SQL(table_inform, msg):
-    print("input: " + msg + "\n")
+def generate_table_inform(table_inform, msg):
     system = f'''
-    Expected a SQL Command for Tables.
+        {table_inform}
 
-    Below is information about Tables
-    Table Name | Field Names
-    {table_inform}
+        According to the following format, parse the question and fill in the answer based on the information provided
+        ```
+        1. Data table to be queried: XXX (JOIN fields first)
+        2. Fields to be included: XXX
+        ```
 
-    Rules:
-    1. May need to join the tables, when the field names in WHERE is not included in tables.
-    2. Must be as same as Table Name and Field Names when using them.
-    3. Do not use ID to find names in SQL conditions.
-    4. Date is not in format of String 
-
-
-    Common Errors:
-    1. Error: WHERE clause cannot contain aggregates!
-
-
-    Return as format 'SELECT DISTINCT ... FROM ... ;', SQL command must end by ';'
     '''
-    # 1. Give the Date field as format 'YYYYMMDD', ex. Date field = '20240101'
-    # 2. If input question said before the Date, then let Date field <= '20240101' in SQL command
-    # 4. Use SELECT * when user ask the entire data.
-    # 2. Use SELECT * when user ask the entire data.
-    # 1. May need to join the tables, when the field names in WHERE is not included in tables.
-    # 2. Binder Error: Table 'table' does not have a column named 'XXX'
-    # 3. Catalog Error: Table with name 'XXX' does not exist!
-    # Must SELECT all field which in GROUP BY.
 
-    human = '''{input}
-
-        (Please respond a SQL Command)'''
+    human = '''{input}'''
 
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -90,22 +69,64 @@ def generate_SQL(table_inform, msg):
     print("Processing ...")
     return llm.invoke(prompt.format(input=msg))
 
+
+def generate_SQL(table_inform, msg):
+    print("input: " + msg + "\n")
+    system_sql = f'''
+    Expected a SQL Command for Tables.
+
+    {table_inform}
+
+    First, Follow the Rules:
+    1. May need to join the tables, when the field names in WHERE is not included in tables.
+    2. Must be as same as Table Name and Field Names when using them.
+    3. Do not use ID to find names in SQL conditions.
+    4. Date is not in format of String 
+
+    Then, answer as format 
+    ```sql
+        SELECT DISTINCT ... FROM ... ;
+    ```, SQL command must end by ';'
+    '''
+    # 1. Give the Date field as format 'YYYYMMDD', ex. Date field = '20240101'
+    # 2. If input question said before the Date, then let Date field <= '20240101' in SQL command
+    # 4. Use SELECT * when user ask the entire data.
+    # 2. Use SELECT * when user ask the entire data.
+    # 1. May need to join the tables, when the field names in WHERE is not included in tables.
+    # 2. Binder Error: Table 'table' does not have a column named 'XXX'
+    # 3. Catalog Error: Table with name 'XXX' does not exist!
+    # Must SELECT all field which in GROUP BY.
+    # Thought First:
+    # 依照以下格式，解析問題並填入答案
+    # 1.欲使用的條件: XXX (Which in WHERE Conditions)
+    # 2.欲使用的計算: XXX (Which is Function for computation)
+
+    human_sql = '''{input}
+
+        (Please respond a SQL Command)'''
+
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            ("system", system_sql),
+            ("human", human_sql),
+        ]
+    )
+    print("Processing ...")
+    return llm.invoke(prompt.format(input=msg))
+
 def query_by_SQL():
     table_inform = get_fields(SummaryFunc.database) + "\n"
-    sqlCommand = generate_SQL(table_inform, SummaryFunc.Input_Question + f'\n\n{SummaryFunc.Action_Output}')
+    table_inform = generate_table_inform(table_inform, SummaryFunc.Input_Question) + "\n"
+    print(f"Table Inform: {table_inform}")
+    sqlCommand = generate_SQL(table_inform, SummaryFunc.Input_Question)  # + f'\n\n{SummaryFunc.Action_Output}'
+    print(f"LLM Output: {sqlCommand}")
     return SummaryFunc.store_dataset(getCsvDataset.dataset_query_sql(SummaryFunc.database, sqlCommand))
 
 def reload():
     # === searchOracleInput ===
     class SearchOracleInput(BaseModel):
         action_input: str = Field(description=f'''
-            依照以下格式，解析問題並回傳填入答案的字串結果
-            ```
-            1.欲使用的條件: XXX (Which in WHERE Conditions)
-            2.欲使用的計算: XXX (Which is Function for computation)
-            3.需包含的欄位: XXX (Which in Question, Conditions and computation)
-            4.欲查詢的資料表: XXX (use JOIN first)
-            ```
+            Thought that what to do
         ''') # Expected a Input Question as String.
 
     def search_from_oracle(action_input: str) -> str:
@@ -152,13 +173,7 @@ def reload():
     # === searchSQLInput ===
     class SearchSQLInput(BaseModel):
         action_input: str = Field(description=f'''
-            依照以下格式，解析問題並回傳填入答案的字串結果
-            ```
-            1.欲使用的條件: XXX (Which in WHERE Conditions)
-            2.欲使用的計算: XXX (Which is Function for computation)
-            3.需包含的欄位: XXX (Which in Question, Conditions and computation)
-            4.欲查詢的資料表: XXX (use JOIN first)
-            ```
+            Thought that what to do
         ''')
         # Parse out the values, strings, dates, etc. in the question,
         # And return corresponding answers in the following format as string directly:
