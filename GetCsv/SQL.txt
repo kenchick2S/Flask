@@ -4,7 +4,33 @@ ATM資料表 | 紀錄所有 ATM 的基本資訊。
 分行資料表 | 紀錄所有分行的基本資訊。
 儲蓄商品資料表 | 紀錄所有儲蓄商品的基本資訊。
 
-ATM資料表 | ATM_ID, ATM_Location, Installation_Date, Last_Maintenance_Date, ATM_Status, Cash_Capacity, ATM_Type, Managed_By_Branch_ID
-交易資料表 | Transaction_ID, Transaction_Amount, Transaction_Date, Product_ID, Branch_ID, ATM_ID
-儲蓄商品資料表 | Product_ID, Product_Name, Product_Type, Interest_Rate, Term, Product_Description
-分行資料表 | Branch_ID, Branch_Name, Branch_Location, Branch_Manager, Opening_Date, Number_of_Employees, Branch_Contact_Number, Branch_Email, Branch_Description
+Fields Name | Metadata | Datatype
+交易資料表.TX001 | Transaction ID | int64
+交易資料表.TA002 | Transaction Amount | float64
+交易資料表.TD003 | Transaction Date | datetime64[ns]
+交易資料表.PID004 | Product ID | object
+交易資料表.BID005 | Branch ID | int64
+交易資料表.ATM006 | ATM ID | int64
+ATM資料表.ATM001 | ATM ID | int64
+ATM資料表.AL002 | ATM Location | object
+ATM資料表.ID003 | Installation Date | datetime64[ns]
+ATM資料表.LMD004 | Last Maintenance Date | datetime64[ns]
+ATM資料表.AS005 | ATM Status | object
+ATM資料表.CC006 | Cash Capacity | int64
+ATM資料表.AT007 | ATM Type | object
+ATM資料表.MBID008 | Managed By Branch ID | int64
+分行資料表.BID001 | Branch ID | int64
+分行資料表.BN002 | Branch Name | object
+分行資料表.BL003 | Branch Location | object
+分行資料表.BM004 | Branch Manager | object
+分行資料表.OD005 | Opening Date | datetime64[ns]
+分行資料表.NOE006 | Number of Employees | int64
+分行資料表.BCN007 | Branch Contact Number | object
+分行資料表.BE008 | Branch Email | object
+分行資料表.BD009 | Branch Description | object
+儲蓄商品資料表.PID001 | Product ID | object
+儲蓄商品資料表.PN002 | Product Name | object
+儲蓄商品資料表.PT003 | Product Type | object
+儲蓄商品資料表.IR004 | Interest Rate | float64
+儲蓄商品資料表.TM005 | Term | int64
+儲蓄商品資料表.PD006 | Product Description | object
