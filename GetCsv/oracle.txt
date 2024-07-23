@@ -3,7 +3,42 @@ Table Name | Metadata
 客戶資料表 | 紀錄客戶的基本資料，包含客戶ID、客戶姓名等個人資訊。
 員工資料表 | 紀錄員工的基本資料，包含員工ID、員工姓名等個人資訊。
 
-Table Name | Fields Name
-交易資料表 | Transaction_ID, Transaction_Date, E_ID, C_ID, Product_Name, Transaction_Amount, Maturity_Date, Settlement_Date, Transaction_Type, Transaction_Status, Currency, Fee_Amount, Net_Amount, Investment_Type, Approval_Status, Payment_Method, Feedback_Score, Customer_Age, Customer_Gender, Promotion_Code
-員工資料表 | Employee_ID, Employee_Name, Address, Gender, Date_of_Birth, Age, Phone_Number, Mobile_Number, Marital_Status, Email
-客戶資料表 | Customer_ID, Customer_Name, Address, Gender, Date_of_Birth, Age, Phone_Number, Mobile_Number, Marital_Status, Email
+Fields Name | Metadata | Datatype
+交易資料表.TX001 | 交易 ID | int64
+交易資料表.TD002 | 交易日期 | datetime64[ns]
+交易資料表.EI003 | 員工 ID | object
+交易資料表.CI004 | 客戶 ID | object
+交易資料表.PN005 | 商品名稱 | object
+交易資料表.TA006 | 交易金額 | int64
+交易資料表.MD007 | 到期日 | datetime64[ns]
+交易資料表.SD008 | Settlement Date | datetime64[ns]
+交易資料表.TT009 | 交易形式 | object
+交易資料表.TS010 | 交易狀態 | object
+交易資料表.CU011 | 現金 | object
+交易資料表.FA012 | 稅 | int64
+交易資料表.NA013 | 淨利 | int64
+交易資料表.IT014 | 投資形式 | object
+交易資料表.AS015 | Approval Status | object
+交易資料表.PM016 | Payment Method | object
+交易資料表.FS017 | Feedback Score | int64
+交易資料表.PC018 | Promotion Code | object
+客戶資料表.CUS001 | 客戶 ID | object
+客戶資料表.CN002 | 客戶 Name | object
+客戶資料表.AD003 | 地址 | object
+客戶資料表.GN004 | 性別 | object
+客戶資料表.DOB005 | 生日 | datetime64[ns]
+客戶資料表.AG006 | 年齡 | int64
+客戶資料表.PN007 | 電話號碼 | int64
+客戶資料表.MN008 | 手機號碼 | object
+客戶資料表.MS009 | 婚姻狀態 | object
+客戶資料表.EM010 | Email | object
+員工資料表.EMP001 | 員工 ID | object
+員工資料表.EN002 | 員工姓名 | object
+員工資料表.AD003 | 地址 | object
+員工資料表.GN004 | 性別 | object
+員工資料表.DOB005 | 生日 | datetime64[ns]
+員工資料表.AG006 | 年齡 | int64
+員工資料表.PN007 | 電話號碼 | int64
+員工資料表.MN008 | 手機號碼 | object
+員工資料表.MS009 | 婚姻狀態 | object
+員工資料表.EM010 | Email | object
