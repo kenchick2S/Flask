@@ -20,7 +20,10 @@ import NavBar from './NavBar';
 
 function App() {
 	const [userInput, setUserInput] = useState('');
-	const [messages, setMessages] = useState([]);
+	const [messages, setMessages] = useState([{
+		AiResponse: "您好，請問您要查詢什麼資料呢？",
+		AiTime: "",
+	}]);
 	const [loading, setLoading] = useState(false);
 
 	const [showTab, setTab] = useState([true, false]);
@@ -74,8 +77,6 @@ function App() {
 				//console.log('status:', response.status)
 				var status = response.status;
 				const resp = status === 200 ? response.data.response : '暫時無法解析您的問題';
-				let result;
-				var AiResponseTime ="";
 				
 				if(response.data.check === 'True'){
 					setCheck(true);
@@ -84,55 +85,17 @@ function App() {
 					setCheck(false);
 				}
 
-				if (resp === '完成資料搜尋' || resp === '測試'){
-					result = '請等待總結'
+				let AiResponseTime = new Date();
 
+				if (!resp.includes("無法查詢") || !resp.includes("重新")){
 					window.open('/table', "表格資料", 'height=80%').focus();
-
-					/* 資料分析 START*/
-					axios.get(
-						'http://localhost:5001/get_summary'
-					).then(function (response){
-						var status_summary = response.status;
-						const resp_summary= status_summary === 200 ? response.data.response : '暫時無法分析資料';
-						let AiResponseTime = new Date();
-
-						const newMessage = {
-							HumanInput: userInput,
-							AiResponse: resp_summary,
-							HumanTime: userInputTime.toLocaleString(),
-							AiTime: AiResponseTime.toLocaleString(),
-						};
-						setMessages((prevMessages) => [...prevMessages.slice(0, -1), newMessage]);
-					}).catch(function (err){
-						alert(`Error: ${err}`);
-						let AiResponseTime = new Date();
-		
-						const newMessage = {
-							HumanInput: userInput,
-							AiResponse: "請重新嘗試",
-							HumanTime: userInputTime.toLocaleString(),
-							AiTime: AiResponseTime.toLocaleString(),
-						};
-						setMessages((prevMessages) => [...prevMessages.slice(0, -1), newMessage]);
-					})
-					.finally(() => {
-						setLoading(false)
-					});
-					/* 資料分析 END */
-				}
-				else{
-					result = resp;
-					setLoading(false);
-					AiResponseTime = new Date();
-					AiResponseTime = AiResponseTime.toLocaleString()
 				}
 
 				const newMessage = {
 					HumanInput: userInput,
-					AiResponse: result,
+					AiResponse: resp,
 					HumanTime: userInputTime.toLocaleString(),
-					AiTime: AiResponseTime,
+					AiTime: AiResponseTime.toLocaleString(),
 				};
 				// console.log('this newMessage:', newMessage);
 				setMessages((prevMessages) => [...prevMessages.slice(0, -1), newMessage]);
@@ -150,6 +113,9 @@ function App() {
 				};
 				setMessages((prevMessages) => [...prevMessages.slice(0, -1), newMessage]);
 			})
+			.finally(() => {
+				setLoading(false)
+			});
 		};
 	};
 
