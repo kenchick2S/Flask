@@ -1,0 +1,1 @@
+curl -X "POST" "http://127.0.0.1:5001/get_check_and_query" -H "accept: application/json" -H "Content-Type: application/json" -H "Access-Control-Allow-Origin: *" -d "{\"inputText\": \"告訴我2023年全年銷售總額最高的基金或債券產品。包含產品名稱與總銷售金額。\"}"
