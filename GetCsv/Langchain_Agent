@@ -25,7 +25,7 @@ from langchain_community.llms import Ollama
 # llm = Ollama(model = "llama3", temperature = 0, num_predict=320)
 # llm2 = Ollama(model = "gemma:2b", temperature = 0.2)
 llm = Ollama(model = "gemma2", top_k=1) #llama3-chatqa:8b, qwen:4b(Alibaba), aya:8b(Cohere), phi3 (3.8B)(Microsoft), gemma:2b zhaoyun/phi3-128k-chinese
-embeddings = OllamaEmbeddings(model="shaw/dmeta-embedding-zh")
+embeddings = OllamaEmbeddings(model="aerok/zpoint_large_embedding_zh") # shaw/dmeta-embedding-zh
 
 
 SummaryFunc = getSummary(llm) # 宣告一個儲存資料和做總結的物件
@@ -62,7 +62,7 @@ def parse_question(msg):
         Q. 告訴我2025/04/23到期的債券類型產品。 包含產品名稱及到期日。
         A.
         資料條件：
-        1. 2025/04/23到期
+        1. 時間：2025/04/23到期
         2. 債券類型
         3. 產品
         資料欄位：
@@ -72,7 +72,7 @@ def parse_question(msg):
         Q. 告訴我2021年全年銷售總額第二高的基金類型的產品。 包含產品名稱與總銷售金額。
         A.
         資料條件：
-        1. 2021年
+        1. 時間：2021年
         2. 全年銷售總額
         3. 第二高
         4. 基金類型
@@ -117,7 +117,7 @@ def parse_question(msg):
         Q. 告訴我員工賴芯菡已完成的交易筆數。包含員工姓名。
         A.
         資料條件：
-        1. 員工賴芯菡
+        1. 員工：賴芯菡
         2. 已完成
         3. 交易筆數
         資料欄位：
@@ -140,7 +140,7 @@ def generate_tables_name(table_inform, msg, llm):
         {table_inform}
         
         List all 'table_name' in one 'database' that is related to question.
-        Ex: database: table_name_1, table_name_2
+        Format: "tables: table_name_1, table_name_2, etc.; database: database_name"
         No more explanations or messages, only 'table_name' and split by ','.
     '''
 
@@ -164,19 +164,21 @@ def generate_SQL(table_inform, msg, llm):
     First, follow the example:
     1. 問題中有與'總數'、'總'相關字詞： SELECT SUM() FROM table_name GROUP BY
     2. 問題中有與'筆數'相關字詞: SELECT COUNT(*) GROUP BY
-    3. 問題需要不只一個 table 的欄位： JOIN ON fields with diferent name in different tables
-    4. 問題中有與日期'年'、'月'相關字詞： YEAR() or MONTH()
-    5. 問題中有與'最'、'第n高'相關字詞： ORDER BY field_name (DESC or ASC) LIMIT 1 (OFFSET n-1);
-    6. 字串匹配優先使用： WHERE field_name LIKE '%STRING%'
+    3. 問題中有與日期'年'、'月'相關字詞： YEAR() or MONTH()
+    4. 問題中有與'最'、'第n高'相關字詞： ORDER BY column_name (DESC or ASC) LIMIT 1 (OFFSET n-1);
+    5. 字串匹配優先使用： WHERE column_name LIKE '%STRING%'
 
     Then, follow the rules:
     1. use HAVING aggregates condition instead of WHERE.
-    2. JOIN all table that need to be queried.
+    2. Don't use code number matching name as condition, code number is not human name.
+    3. JOIN every table.
+    4. No subquery.
+
 
     Finally, answer as format 
     ```sql
-        SELECT (DISTINCT) field_name FROM table_name;
-    ```, choose field_name depends on metadata.
+        SELECT (DISTINCT) column_name FROM table_name;
+    ```, choose required columns depends on metadata.
     '''
 
     human_sql = '''{input}
@@ -216,15 +218,19 @@ def query_by_SQL():
             table_inform_list.append(result[0].page_content)
 
     tables_set = set(table_inform_list)
-    database_inform = 'database | table_name | metadata\n' + '\n'.join(tables_set)
+    database_inform = 'database_name | table_name | metadata\n' + '\n'.join(tables_set)
+
+    print(database_inform)
+    print("\n\n")
 
     tables = generate_tables_name(database_inform, SummaryFunc.Input_Question, llm)
 
     print(tables)
 
-    selected_database = tables.split(':')[0].strip()
-    selected_tables = tables.split(':')[-1].strip()
-    
+    selected_inform = tables.split(';')
+    selected_database = selected_inform[-1].split(':')[-1].strip()
+    selected_tables = selected_inform[0].split(':')[-1]
+
     with open(directory + selected_database + col_file_name, 'r', encoding='utf-8') as file:
         lines = file.read().split('\n')
 
@@ -235,24 +241,49 @@ def query_by_SQL():
                 col_list.append(col)
 
     col_vectors = FAISS.from_texts(col_list, embeddings)
-    for_join_keyword_list = [table_name.strip()+" 代碼" for table_name in selected_tables.split(',')]
+
+    # join_keyword = " 代碼, 代號, ID"
+    # for_join_keyword_list = []
+    # for table_name in selected_tables.split(','):
+    #     for_join_keyword_list += [table_name.strip() + j for j in join_keyword.split(',')]
+    # print(for_join_keyword_list)
+
+    for_join_keyword_list = ['代碼', '代號', 'ID']
+    
 
     col_inform_list = []
-    for keyword in keywords_list+for_join_keyword_list:
-        for result in col_vectors.similarity_search_with_score(keyword, k=3):
+    # for keyword in keywords_list+for_join_keyword_list:
+    #     print(f"====={keyword}=====")
+    #     for result in col_vectors.similarity_search_with_score(keyword, k=5):
+    #         col_inform_list.append(result[0].page_content)
+    #         print(result[0].page_content)
+    
+    for keyword in for_join_keyword_list:
+        print(f"====={keyword}=====")
+        for result in col_vectors.similarity_search_with_score(keyword, k=5):
             col_inform_list.append(result[0].page_content)
+            print(result[0].page_content)
+    
+    print(f"====={SummaryFunc.Input_Question}=====")
+    for result in col_vectors.similarity_search_with_score(SummaryFunc.Input_Question, k=30):
+            col_inform_list.append(result[0].page_content)
+            print(result[0].page_content)
     
     selected_columns = set(col_inform_list)
 
-    print(selected_columns)
+    # print(selected_columns)
 
-    table_inform = ""
+    table_inform = f'table_name: {selected_tables}\n\n'
     for table_name in selected_tables.split(','):
         table_inform += f"{lines[0].replace('table_name', table_name.strip())}\n"
         if table_name.strip() != '':
             table_inform += get_fields(selected_columns, table_name) + '\n'
 
+    print("\n\n")
+    print(table_inform)
+
     sqlCommand = generate_SQL(table_inform, SummaryFunc.Input_Question, llm)
+    sqlCommand = sqlCommand.replace('`', '')
     sqlCommand = sqlCommand[sqlCommand.find('SELECT'): sqlCommand.find(';')]
 
     print(sqlCommand)
