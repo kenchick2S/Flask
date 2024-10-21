@@ -1,0 +1,154 @@
+1.	API: /get_keyword
+1.1	功能
+獲取關鍵字解析，給使用者確認是否正確，正確，回答'1'，不正確，回答'2'。請將回答傳到get_query。
+1.2	API入口
+{DATA_API_URL}/get_keyword
+1.3	HTTP請求方式
+POST
+1.4	請求參數
+參數名稱	類型	必須	描述
+	JSON object	Y	API請求的參數。
+
+object
+參數名稱	類型	必須	描述
+inputText	String	Y	輸入的字串
+
+1.5	返回參數
+類型	描述
+JSON object	API回傳的參數。
+Object
+參數名稱	類型	描述
+response	String	關鍵字的解析結果
+check	String	給前端確認下一步是否使用 get_query 做查詢，此 api 回傳 True。
+1.6	範例 
+•	請求範例
+	cURL 
+curl -X "POST" \
+  "http://{{ip}}:{{port}}/get_keyword" 
+  -H "accept: application/json"
+  -H "Content-Type: application/json"
+  -H "Access-Control-Allow-Origin: *"
+  -d "{"inputText": "告訴我處理交易金額超過60000元次數最多的員工。包含員工姓名與該員工的交易總筆數。"}"
+•	回傳範例
+{
+	"response": "
+資料條件：\n1. 處理交易金額\n2. 超過60000元\n3. 次數最多\n4. 員工\n資料欄位：\n1. 員工姓名\n2. 交易總筆數 \n\n
+請問以上是否正確? 正確，請回答'1'，不正確，請回答'2'。",
+	"check": "True"
+} 
+2.	API: /get_query
+2.1	功能
+回答'1'，獲取系統生成的 SQL 語句; 回答'1'以外的字串，回覆"請重新詢問"。
+2.2	API入口
+{DATA_API_URL}/get_query
+2.3	HTTP請求方式
+POST
+2.4	請求參數
+參數名稱	類型	必須	描述
+	JSON object	Y	API請求的參數。
+
+object
+參數名稱	類型	必須	描述
+inputText	String	Y	輸入的字串，
+
+2.5	返回參數
+類型	描述
+JSON object	API回傳的參數。
+Object
+參數名稱	類型	描述
+response	String	系統生成的SQL語句
+check	String	給前端確認下一步是否使用 get_query 做查詢，此 api 回傳 False。
+2.6	範例 
+•	請求範例
+	cURL 
+curl -X "POST" \
+  "http://{{ip}}:{{port}}/get_query" 
+  -H "accept: application/json"
+  -H "Content-Type: application/json"
+  -H "Access-Control-Allow-Origin: *"
+  -d "{"inputText": "1"}"
+•	回傳範例
+  {
+	"response": "
+SELECT  EN002, COUNT(DISTINCT TX001) AS transaction_count
+FROM  員工資料表JOIN  交易資料表 ON EI003 = EMP001
+WHERE  TA006 > 60000 GROUP BY  EN002
+ORDER BY   transaction_count DESC LIMIT  1; ",
+	"check": "False"
+}
+3.	API: /get_keyword_and_query
+3.1	功能
+一次性獲取’關鍵字解析’和’ 系統生成的 SQL 語句’，不須經過確認步驟。
+3.2	API入口
+{DATA_API_URL}/get_keyword_and_query
+3.3	HTTP請求方式
+POST
+3.4	請求參數
+參數名稱	類型	必須	描述
+	JSON object	Y	API請求的參數。
+object
+參數名稱	類型	必須	描述
+inputText	String	Y	輸入的字串
+3.5	返回參數
+類型	描述
+JSON object	API回傳的參數。
+Object
+參數名稱	類型	描述
+keyword	String	關鍵字的解析結果
+query	String	系統生成的SQL語句
+3.6	範例 
+•	請求範例
+	cURL 
+curl -X "POST" \
+  "http://{{ip}}:{{port}}/get_keyword_and_query" 
+  -H "accept: application/json"
+  -H "Content-Type: application/json"
+  -H "Access-Control-Allow-Origin: *"
+  -d "{"inputText": "告訴我處理交易金額超過60000元次數最多的員工。包含員工姓名與該員工的交易總筆數。"}"
+•	回傳範例
+  {
+	"keyword": "
+資料條件：\n1. 處理交易金額\n2. 超過60000元\n3. 次數最多\n4. 員工\n資料欄位：\n1. 員工姓名\n2. 交易總筆數 ",
+	"query": "
+SELECT  EN002, COUNT(DISTINCT TX001) AS transaction_count
+FROM  員工資料表JOIN  交易資料表 ON EI003 = EMP001
+WHERE  TA006 > 60000 GROUP BY  EN002
+ORDER BY   transaction_count DESC LIMIT  1; "
+}
+4.	API: /table
+4.1	功能
+獲取已查詢的數據結果。
+4.2	API入口
+{DATA_API_URL}/table?id=
+4.3	HTTP請求方式
+GET
+4.4	請求參數
+參數名稱	類型	必須	描述
+id	integer	Y	範圍: 0~4 (舊~新)，取得最近五筆查詢紀錄。
+
+4.5	返回參數
+類型	描述
+JSON object	API回傳的參數。
+Object
+參數名稱	類型	描述
+question	String	查詢的問題紀錄
+data	JSON object
+	查詢的數據結果
+count	Integer	已查詢數量
+4.6	範例 
+•	請求範例
+	cURL 
+curl -X "GET" \
+  "http://{{ip}}:{{port}}/table?id=0" 
+  -H "accept: application/json"
+  -H "Content-Type: application/json"
+  -H "Access-Control-Allow-Origin: *"
+•	回傳範例
+{"question": "告訴我客戶王亞鬆對基金類型產品的平均購買金額。包含客戶姓名與購買金額。",
+  "data": "[{"cn002":"王亞鬆","平均購買金額":47241.3026315789}]",
+  "count": 1
+}
+
+
+
+
