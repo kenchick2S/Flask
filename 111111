@@ -266,3 +266,14 @@ Run it like: python <your file>.py "your message here" --endpoint "your_endpoint
 
 if __name__ == "__main__":
     main()
+===========================================
+curl -X POST \
+    "http://127.0.0.1:7860/api/v1/run/d14613bb-f884-4a0c-b374-710a61577d58?stream=false" \
+    -H 'Content-Type: application/json'\
+    -d '{"input_value": "message",
+    "output_type": "chat",
+    "input_type": "text",
+    "tweaks": {
+  "CustomComponent-Ew29C": {},
+  "ChatOutput-ZReEQ": {}
+}}'
