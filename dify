@@ -1,0 +1,38 @@
+controllers, models, services
+
+https://blog.csdn.net/weixin_43750377/article/details/115112517
+from functools import wrap
+@wraps(func)
+decorator 有用
+
+定義type
+from flask_restful import fields 
+
+定義error
+from werkzeug.exceptions import HTTPException 
+from werkzeug.exceptions import NotFound, Unauthorized
+
+API
+import flask_login
+from flask_restful import Api, http_status_message
+from flask_restful import Resource, reqparse 
+
+from flask import current_app, got_request_exception
+
+from flask import Blueprint
+bp = Blueprint("console", __name__, url_prefix="/console/api")
+
+
+from flask import Flask
+class DifyApp(Flask):
+    pass
+
+def create_flask_app_with_configs() -> DifyApp:
+    """
+    create a raw flask app
+    with configs loaded from .env file
+    """
+    dify_app = DifyApp(__name__)
+    dify_app.config.from_mapping(dify_config.model_dump())
+
+    return dify_app
